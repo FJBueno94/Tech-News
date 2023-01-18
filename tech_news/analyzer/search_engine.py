@@ -1,4 +1,5 @@
 from tech_news.database import search_news
+import datetime
 
 
 # https://stackoverflow.com/questions/26699885/how-can-i-use-a-regex-variable-in-a-query-for-mongodb
@@ -11,9 +12,25 @@ def search_by_title(title):
     return response
 
 
+# https://stackoverflow.com/questions/969285/how-do-i-translate-an-iso-8601-datetime-string-into-a-python-datetime-object
 # Requisito 7
 def search_by_date(date):
-    """Seu código deve vir aqui"""
+    try:
+        search = search_news(
+            {
+                "timestamp": {
+                    "$eq": datetime.datetime.fromisoformat(date).strftime(
+                        "%d-%m-%Y"
+                    )
+                }
+            }
+        )
+        response = []
+        for new in search:
+            response.append((new["title"], new["url"]))
+        return response
+    except ValueError:
+        raise ValueError("Data inválida")
 
 
 # Requisito 8
