@@ -1,6 +1,7 @@
 import requests
 import time
 from parsel import Selector
+from tech_news.database import create_news
 
 
 # Requisito 1
@@ -51,8 +52,7 @@ def scrape_news(html_content):
     comements = select.css("ol.comment-list li").getall()
     comments_count = len(comements) if comements else 0
     summary = "".join(
-        select.css(".entry-content > p:first-of-type *::text")
-        .getall()
+        select.css(".entry-content > p:first-of-type *::text").getall()
     ).strip()
     tags = select.css("section.post-tags a::text").getall()
     category = select.css("div.meta-category span.label::text").get()
@@ -71,4 +71,12 @@ def scrape_news(html_content):
 
 # Requisito 5
 def get_tech_news(amount):
-    """Seu código deve vir aqui"""
+    page = fetch("https://blog.betrybe.com/")
+    news_list = []
+    while len(news_list) < amount:
+        news_list += scrape_updates(page)
+        page = fetch(scrape_next_page_link(page))
+
+    db_news = [scrape_news(fetch(page)) for page in news_list[0:amount]]
+    create_news(db_news)
+    return db_news
