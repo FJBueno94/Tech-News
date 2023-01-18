@@ -7,9 +7,9 @@ from parsel import Selector
 def fetch(url):
     try:
         time.sleep(1)
-        response = requests.get(url, timeout=2, headers={
-            "user-agent": "Fake user-agent"
-        })
+        response = requests.get(
+            url, timeout=2, headers={"user-agent": "Fake user-agent"}
+        )
         status_code = response.status_code
         if status_code == 200:
             response = response.text
@@ -23,7 +23,7 @@ def fetch(url):
 # Requisito 2
 def scrape_updates(html_content):
     select = Selector(html_content)
-    links = select.css('a.cs-overlay-link::attr(href)').getall()
+    links = select.css("a.cs-overlay-link::attr(href)").getall()
     if links:
         return links
     else:
@@ -33,7 +33,7 @@ def scrape_updates(html_content):
 # Requisito 3
 def scrape_next_page_link(html_content):
     select = Selector(html_content)
-    link = select.css('a.next::attr(href)').get()
+    link = select.css("a.next::attr(href)").get()
     if link:
         return link
     else:
@@ -41,8 +41,32 @@ def scrape_next_page_link(html_content):
 
 
 # Requisito 4
+# https://www.tutorialspoint.com/python3/string_strip.htm
 def scrape_news(html_content):
-    """Seu código deve vir aqui"""
+    select = Selector(html_content)
+    url = select.css("link[rel=canonical]::attr(href)").get()
+    title = select.css("h1.entry-title::text").get().strip()
+    timestamp = select.css("li.meta-date::text").get()
+    writer = select.css("span.author a::text").get()
+    comements = select.css("ol.comment-list li").getall()
+    comments_count = len(comements) if comements else 0
+    summary = "".join(
+        select.css(".entry-content > p:first-of-type *::text")
+        .getall()
+    ).strip()
+    tags = select.css("section.post-tags a::text").getall()
+    category = select.css("div.meta-category span.label::text").get()
+
+    return {
+        "url": url,
+        "title": title,
+        "timestamp": timestamp,
+        "writer": writer,
+        "comments_count": comments_count,
+        "summary": summary,
+        "tags": tags,
+        "category": category,
+    }
 
 
 # Requisito 5
